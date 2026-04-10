@@ -318,27 +318,24 @@ function importLibrary(event) {
 
 async function exportLibrary() {
     try {
-        const { Filesystem } = Capacitor.Plugins;
-        const db = localStorage.getItem('chordwise_db') || '[]';
-        const fileName = `chordwise_backup_${new Date().getTime()}.json`;
+        // --- DAGDAG MO ITO PARA GUMANA ANG FILESYSTEM ---
+        const { Filesystem } = Capacitor.Plugins; 
 
-        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-            await Filesystem.requestPermissions();
+        const data = localStorage.getItem('chordwise_db');
+        
+        if (!data || data === '[]') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Empty Library',
+                text: 'Please add some songs before exporting.',
+                confirmButtonColor: '#38bdf8'
+            });
+            return;
         }
 
-        await Filesystem.writeFile({
-            path: fileName,
-            data: db,
-            directory: 'DOCUMENTS',
-            encoding: 'utf8'
-        });
+        const fileName = 'ChordWise_Backup.json';
 
-        Swal.fire('Exported!', `Saved as ${fileName} in Documents`, 'success');
-    } catch (e) {
-        Swal.fire('Export Failed', e.message, 'error');
-    }
-}
-// --- DAGDAG MO ITO ---
+        // Check permissions bago mag-tuloy
         const checkPermission = async () => {
             const status = await Filesystem.checkPermissions();
             if (status.publicStorage !== 'granted') {
@@ -347,13 +344,7 @@ async function exportLibrary() {
         };
         await checkPermission();
        
-        // I-check kung running bilang Native App (Android/iOS)
         if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-            
-            
-        
-
-            // Isulat ang file sa Documents folder ng phone
             await Filesystem.writeFile({
                 path: fileName,
                 data: data,
@@ -362,34 +353,27 @@ async function exportLibrary() {
                 recursive: true 
             });
 
-
-        Swal.fire({
-    icon: 'success',
-    title: 'Exported!',
-    text: 'Your backup has been saved to the Documents folder.',
-    timer: 3000,
-    showConfirmButton: false,
-    // Eto ang pampalabas sa harap:
-    didOpen: () => {
-        const swalContainer = document.querySelector('.swal2-container');
-        if (swalContainer) {
-            swalContainer.style.zIndex = '999999';
-        }
-    }
-});
-
+            Swal.fire({
+                icon: 'success',
+                title: 'Exported!',
+                text: 'Your backup has been saved to the Documents folder.',
+                timer: 3000,
+                showConfirmButton: false,
+                didOpen: () => {
+                    const swalContainer = document.querySelector('.swal2-container');
+                    if (swalContainer) { swalContainer.style.zIndex = '999999'; }
+                }
+            });
         } else {
-            // Fallback para sa Browser testing
+            // Browser fallback
             const blob = new Blob([data], { type: 'application/json' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
             link.click();
         }
-
     } catch (err) {
         console.error("Export Error:", err);
-        // Eto yung Swal.fire kapag may Error (halimbawa: Permission Denied)
         Swal.fire({
             icon: 'error',
             title: 'Export Failed',
@@ -648,12 +632,5 @@ async function shareSong() {
     }
 }
 </script>
-<script src="capacitor.js"></script>
-<script>
-        // Idagdag ito para i-check kung connected ang Plugins
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log("Capacitor Plugins Ready");
-        });
-    </script>
 </body>
 </html>
