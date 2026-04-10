@@ -1,0 +1,11 @@
+{
+  "appId": "io.ionic.starter",
+  "appName": "ChordWisePro",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "Filesystem": {
+      "androidStorage": "all"
+    }
+  }
+}
