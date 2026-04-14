@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ChordWise Pro - Mark Adriano</title>
+<style>
+:root { 
+    --bg: #0f172a; 
+    --sidebar-bg: #0f172a;
+    --card: rgba(30, 41, 59, 0.7); 
+    --text: #f8fafc; 
+    --accent: #38bdf8; 
+    --btn-grad: linear-gradient(135deg, #38bdf8, #818cf8);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-text: #ffffff;
+    --search-bg: rgba(255, 255, 255, 0.1);
+    --search-text: #ffffff;
+    --danger: #ff4757;
+    --gig-bg: #0f172a;
+    --gig-text: #f8fafc;
+}
+
+.light-mode { 
+    --bg: #f1f5f9; 
+    --sidebar-bg: #ffffff;
+    --card: rgba(255, 255, 255, 0.9); 
+    --text: #0f172a; 
+    --accent: #0284c7; 
+    --btn-grad: linear-gradient(135deg, #0ea5e9, #6366f1);
+    --input-bg: #e2e8f0;
+    --input-text: #0f172a;
+    --search-bg: #ffffff;
+    --search-text: #0f172a;
+    --gig-bg: #ffffff;
+    --gig-text: #0f172a;
+}
+
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; transition: background 0.3s; }
+
+/* Splash Screen */
+#splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: 0.8s; text-align: center; }
+.logo-container { width: 80px; height: 80px; margin-bottom: 20px; animation: bounceIn 1.2s ease-out; }
+@keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+.splash-title { font-size: 1.3rem; letter-spacing: 5px; font-weight: 900; background: var(--btn-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+.splash-name { margin-top:10px; font-size:0.45rem; letter-spacing:2px; color:#64748b; font-weight:800; text-transform: uppercase; }
+
+/* Modal */
+.modal-overlay { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); 
+    display: none; justify-content: center; align-items: center; 
+    z-index: 40000; padding: 20px; box-sizing: border-box; 
+}
+.modal-card { 
+    background: #111827; border-radius: 24px; padding: 25px; 
+    width: 100%; max-width: 320px; text-align: center; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    box-sizing: border-box; 
+}
+@keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-title { color: var(--danger); font-size: 1.1rem; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
+.modal-text { color: #94a3b8; font-size: 0.85rem; margin-bottom: 25px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; }
+.m-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+.btn-cancel { background: #1f2937; color: white; }
+.btn-confirm { background: var(--danger); color: white; }
+#main-app { opacity: 0; visibility: hidden; transition: opacity 1s; padding: 15px; max-width: 450px; margin: 0 auto; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+
+header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+.header-brand { display: flex; align-items: center; gap: 10px; flex-grow: 1; justify-content: center; }
+h2 { font-size: 1.1rem; letter-spacing: 2px; font-weight: 900; background: var(--btn-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+.icon-btn { width: 40px; height: 40px; background: var(--card); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); color: var(--text); }
+
+/* Sidebar */
+.sidebar { position: fixed; top: 0; left: -100%; width: 85%; max-width: 320px; height: 100%; background: var(--sidebar-bg); z-index: 10001; transition: 0.4s ease; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1); }
+.sidebar.active { left: 0; }
+.sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; display: none; backdrop-filter: blur(4px); }
+.sidebar-label { color: var(--accent); font-weight: 900; font-size: 0.85rem; margin-bottom: 10px; letter-spacing: 1px; }
+
+.library-box { flex-shrink: 0; display: flex; flex-direction: column; margin-bottom: 15px; max-height: 40%; }
+#songList { flex-grow: 1; overflow-y: auto; }
+
+.setlist-box { flex-grow: 1; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-bottom: 15px; overflow-y: auto; }
+#setListDisplay { display: flex; flex-direction: column; gap: 5px; }
+
+.song-item { background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: var(--text); }
+
+.guide-box { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-bottom: 20px; }
+.guide-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.7rem; color: var(--text); opacity: 0.8; }
+.kbd { background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 3px 8px; border-radius: 5px; font-family: monospace; font-weight: 900; min-width: 60px; text-align: center; border: 1px solid rgba(56, 189, 248, 0.2); }
+
+.coffee-card { border: 2px solid var(--accent); background: rgba(56, 189, 248, 0.05); border-radius: 18px; padding: 15px; position: relative; overflow: hidden; margin-top: auto; }
+.gcash-n { font-size: 1.1rem; font-weight: 900; color: var(--text); margin: 4px 0; }
+.gcash-h { font-size: 0.6rem; font-weight: 800; opacity: 0.6; text-transform: uppercase; color: var(--text); }
+
+textarea { width: 100%; height: 160px; background: var(--card); color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 12px; outline: none; font-family: 'Fira Code', monospace; font-size: 0.9rem; resize: none; box-sizing: border-box; line-height: 1.5; }
+.controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
+.btn { padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
+.btn-trans { background: var(--card); color: var(--text); border: 1px solid rgba(255,255,255,0.05); }
+.btn-main { background: var(--btn-grad); color: white; grid-column: span 3; }
+.btn-save { background: #10b981; color: white; grid-column: span 3; margin-top: 5px; }
+
+.output-box { position: relative; background: #ffffff; color: #1e293b; border-radius: 20px; padding: 45px 12px 20px; margin-top: 20px; min-height: 100px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+#output { margin: 0; white-space: pre-wrap; font-family: 'Fira Code', monospace; line-height: 1.6; font-size: 0.9rem; }
+.copy-chip { position: absolute; top: 12px; right: 12px; background: #10b981; color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; cursor: pointer; display: flex; gap: 5px; }
+.share-chip { right: 85px; background: var(--accent); }
+
+#searchBar { width: 100%; padding: 10px; border-radius: 10px; background: var(--search-bg); color: var(--search-text); border: 1px solid rgba(0,0,0,0.15); margin-bottom: 10px; outline: none; font-weight: 600; font-size: 0.8rem; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #334155; color: #fff; padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; z-index: 11000; display: none; }
+
+/* GIG MODE (TAP TO NAVIGATE) */
+#gig-mode { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: var(--gig-bg); color: var(--gig-text); 
+    z-index: 30000; display: none; flex-direction: column; padding: 20px; 
+    box-sizing: border-box; overflow-y: auto; transition: 0.3s;
+}
+.gig-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 20px; border-bottom: 2px solid rgba(128,128,128,0.1); 
+    padding-bottom: 15px; pointer-events: none;
+}
+.gig-title { font-weight: 900; font-size: 1.4rem; color: var(--accent); text-transform: uppercase; }
+.gig-controls { position: fixed; bottom: 25px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 30005; }
+.gig-btn { 
+    width: 60px; height: 60px; border-radius: 20px; border: none; 
+    background: var(--btn-grad); color: white; font-weight: 900; 
+    font-size: 1.4rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.gig-reset { background: #64748b; font-size: 1.2rem; } /* Reset Key Style */
+.gig-close { background: var(--danger); box-shadow: 0 8px 20px rgba(255,71,87,0.3); }
+
+/* Invisible Tap Targets */
+.gig-tap-left, .gig-tap-right {
+    position: fixed; top: 0; width: 30%; height: 100%; z-index: 30001;
+}
+.gig-tap-left { left: 0; }
+.gig-tap-right { right: 0; }
+#gig-output { pointer-events: none; }
+</style>
+</head>
+<body class="dark-mode">
+
+<svg style="display: none;">
+<symbol id="logo-icon" viewBox="0 0 100 100">
+<path d="M20 30L40 70L50 50L60 70L80 30" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<path d="M50 20L50 50M50 20L40 30M50 20L60 30" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</symbol>
+</svg>
+
+<div id="splash-screen">
+    <div class="logo-container">
+        <svg style="width: 100%; height: 100%; color: #38bdf8;"><use href="#logo-icon"></use></svg>
+    </div>
+    <div class="splash-title">CHORDWISE</div>
+    <div class="splash-name">BY MARK ANTHONY M. ADRIANO</div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="gig-mode">
+    <div class="gig-tap-left" onclick="navGig(-1)"></div>
+    <div class="gig-tap-right" onclick="navGig(1)"></div>
+    
+    <div class="gig-header">
+        <div id="gig-song-title" class="gig-title">SONG TITLE</div>
+        <div id="gig-offset" style="font-weight: 800; opacity: 0.7;">KEY OFFSET: 0</div>
+    </div>
+    <pre id="gig-output" style="font-family: 'Fira Code', monospace; line-height: 1.8; font-size: 1.2rem; white-space: pre-wrap; margin-bottom: 20px;"></pre>
+    
+    <div class="gig-controls">
+        <button class="gig-btn" onclick="changeKeyGig(1)">♯</button>
+        <button class="gig-btn gig-reset" onclick="resetKeyGig()" title="Reset Key">↺</button>
+        <button class="gig-btn" onclick="changeKeyGig(-1)">♭</button>
+        <button class="gig-btn gig-close" onclick="closeGigMode()">✕</button>
+    </div>
+</div>
+
+<div id="custom-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 id="m-title" class="modal-title">CONFIRM</h3>
+        <p id="m-text" class="modal-text">Are you sure?</p>
+        <div class="modal-actions">
+            <button class="m-btn btn-cancel" onclick="closeModal()">CANCEL</button>
+            <button id="m-confirm" class="m-btn btn-confirm">CONFIRM</button>
+        </div>
+    </div>
+</div>
+
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div id="sidebar" class="sidebar">
+    <div class="library-box">
+        <div class="sidebar-label">SONG LIBRARY</div>
+        
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <button class="btn btn-trans" style="flex:1; padding: 8px; font-size: 0.65rem;" onclick="exportLibrary()">📤 EXPORT</button>
+            <button class="btn btn-trans" style="flex:1; padding: 8px; font-size: 0.65rem;" onclick="document.getElementById('importFile').click()">📥 IMPORT</button>
+            <input type="file" id="importFile" style="display:none" accept=".json" onchange="importLibrary(event)">
+        </div>
+
+        <input type="text" id="searchBar" oninput="displaySongs()" placeholder="Search library...">
+        <div id="songList"></div>
+    </div>
+    <div class="setlist-box">
+        <div class="sidebar-label">MY SETLIST</div>
+        <div id="setListDisplay"></div>
+    </div>
+
+   <div class="guide-box">
+    <div class="sidebar-label">QUICK GUIDE</div>
+    <div class="guide-row"><span>Introduction</span> <span class="kbd">i + Space</span></div>
+    <div class="guide-row"><span>Verse Section</span> <span class="kbd">v + Space</span></div>
+    <div class="guide-row"><span>Pre-Chorus</span> <span class="kbd">p + Space</span></div>
+    <div class="guide-row"><span>Chorus Part</span> <span class="kbd">c + Space</span></div>
+    <div class="guide-row"><span>Bridge Part</span> <span class="kbd">b + Space</span></div>
+    <div class="guide-row"><span>Lead/Solo</span> <span class="kbd">l + Space</span></div>
+</div>
+
+    <div class="coffee-card">
+        <div class="sidebar-label" style="margin-bottom:5px; color:var(--accent);">☕ BUY ME COFFEE</div>
+        <div class="gcash-n">0905 520 2557</div>
+        <div class="gcash-h">GCASH: MARK ANTHONY A.</div>
+        <div style="position:absolute; right:-5px; bottom:-10px; font-size:3rem; opacity:0.1;">☕</div>
+    </div>
+</div>
+
+<div id="main-app">
+    <header>
+        <div class="icon-btn" onclick="toggleSidebar()">☰</div>
+        <div class="header-brand">
+            <svg style="width: 24px; height: 24px; color: var(--accent);"><use href="#logo-icon"></use></svg>
+            <h2>CHORDWISE</h2>
+        </div>
+        <div class="icon-btn" onclick="toggleTheme()" id="themeIcon">🌙</div>
+    </header>
+
+    <div id="offsetLabel" style="text-align: center; font-size: 0.7rem; color: var(--accent); font-weight: 800; margin: 10px 0;">KEY OFFSET: 0</div>
+
+    <div style="position:relative;">
+        <textarea id="input" spellcheck="false" oninput="handleInput(this)" placeholder="Enter song details...">Title: </textarea>
+        <div onclick="askClearEditor()" style="position:absolute; bottom:10px; right:10px; cursor:pointer; opacity:0.5; font-size: 1.3rem;">🗑️</div>
+    </div>
+
+    <div class="controls">
+        <div id="keySection" style="display:none; grid-column: span 3; text-align: center; background: var(--card); padding: 8px; border-radius: 12px; margin-bottom: 5px;">
+            <select id="rootKey" onchange="process()" style="background:none; color:var(--text); border:1px solid var(--accent); font-weight:900;">
+                <option value="C">C</option><option value="C#">C#</option><option value="D">D</option><option value="D#">D#</option><option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="G">G</option><option value="G#">G#</option><option value="A">A</option><option value="Bb">Bb</option><option value="B">B</option>
+            </select>
+        </div>
+        <button class="btn btn-trans" onclick="changeKey(-1)">♭ DOWN</button>
+        <button class="btn btn-trans" onclick="resetAll()">RESET</button>
+        <button class="btn btn-trans" onclick="changeKey(1)">♯ UP</button>
+        <button class="btn btn-main" id="numBtn" onclick="toggleNum()">ACTIVATE NUMBER SYSTEM</button>
+        <button class="btn btn-save" onclick="saveSong()">💾 SAVE TO LIBRARY</button>
+    </div>
+
+    <div class="output-box">
+        <div class="copy-chip share-chip" onclick="shareSong()">SHARE</div>
+        <div class="copy-chip" onclick="copy()">COPY</div>
+        <pre id="output">Chords will appear here...</pre>
+    </div>
+</div>
+
+<script>
+let offset = 0, isNum = false, currentGigIdx = 0;
+let currentSongId = null; // Idagdag ito para ma-track ang active song id
+let mySetlist = JSON.parse(localStorage.getItem('chordwise_setlist') || '[]');
+const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'];
+const forceSharp = {'Db':'C#', 'Eb':'D#', 'Gb':'F#', 'Ab':'G#', 'A#':'Bb'};
+
+window.onload = () => { 
+    displaySongs(); 
+    displaySetlist();
+    setTimeout(() => { 
+        document.getElementById('splash-screen').style.opacity='0'; 
+        setTimeout(()=>{ 
+            document.getElementById('splash-screen').style.display='none'; 
+            document.getElementById('main-app').style.opacity='1'; 
+            document.getElementById('main-app').style.visibility='visible'; 
+        }, 800); 
+    }, 2000); 
+};
+
+// --- CORE UTILS ---
+function openModal(title, text, confirmBtnText, onConfirm) {
+    document.getElementById('m-title').innerText = title;
+    document.getElementById('m-text').innerText = text;
+    const confirmBtn = document.getElementById('m-confirm');
+    confirmBtn.innerText = confirmBtnText;
+    confirmBtn.onclick = () => { onConfirm(); closeModal(); };
+    document.getElementById('custom-modal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('custom-modal').style.display = 'none'; }
+function askClearEditor() { 
+    openModal("CLEAR ALL?", "Clear editor?", "CONFIRM", () => { 
+        document.getElementById('input').value = "Title: "; // Ibalik ang default
+        currentSongId = null; 
+        process(); 
+        showToast("Cleared! 🗑️"); 
+    }); 
+}
+
+
+
+
+function importLibrary(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (Array.isArray(data)) {
+                const old = JSON.parse(localStorage.getItem('chordwise_db') || '[]');
+                const merged = [...old, ...data].filter((v,i,a) => a.findIndex(t => t.content === v.content) === i);
+                localStorage.setItem('chordwise_db', JSON.stringify(merged));
+                displaySongs(); showToast("Imported Successfully! 📥");
+            }
+        } catch(err) { showToast("Invalid file! ❌"); }
+    };
+    reader.readAsText(file);
+}
+
+async function exportLibrary() {
+    try {
+        // --- DAGDAG MO ITO PARA GUMANA ANG FILESYSTEM ---
+        const { Filesystem } = Capacitor.Plugins; 
+
+        const data = localStorage.getItem('chordwise_db');
+        
+        if (!data || data === '[]') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Empty Library',
+                text: 'Please add some songs before exporting.',
+                confirmButtonColor: '#38bdf8'
+            });
+            return;
+        }
+
+        const fileName = 'ChordWise_Backup.json';
+
+        // Check permissions bago mag-tuloy
+        const checkPermission = async () => {
+            const status = await Filesystem.checkPermissions();
+            if (status.publicStorage !== 'granted') {
+                await Filesystem.requestPermissions();
+            } 
+        };
+        await checkPermission();
+       
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            await Filesystem.writeFile({
+                path: fileName,
+                data: data,
+                directory: 'DOCUMENTS',
+                encoding: 'utf8',
+                recursive: true 
+            });
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Exported!',
+                text: 'Your backup has been saved to the Documents folder.',
+                timer: 3000,
+                showConfirmButton: false,
+                didOpen: () => {
+                    const swalContainer = document.querySelector('.swal2-container');
+                    if (swalContainer) { swalContainer.style.zIndex = '999999'; }
+                }
+            });
+        } else {
+            // Browser fallback
+            const blob = new Blob([data], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+        }
+    } catch (err) {
+        console.error("Export Error:", err);
+        Swal.fire({
+            icon: 'error',
+            title: 'Export Failed',
+            text: 'Please allow storage permissions in app settings.',
+        });
+    }
+}
+
+// --- SONG MANAGEMENT ---
+function displaySongs() {
+    const list = document.getElementById('songList');
+    const query = document.getElementById('searchBar').value.toLowerCase();
+    const songs = JSON.parse(localStorage.getItem('chordwise_db') || '[]');
+    list.innerHTML = '';
+    songs.filter(s => s.title.toLowerCase().includes(query) || s.content.toLowerCase().includes(query)).reverse().forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'song-item';
+        item.innerHTML = `<div onclick="extractAndLoad(${s.id})" style="flex:1; cursor:pointer; font-weight:700; color:var(--accent);">${s.title}</div>
+            <div style="display:flex; gap:10px;"><div onclick="addToSetlist(${s.id})" style="cursor:pointer;">➕</div><div onclick="askDeleteSong(${s.id})" style="cursor:pointer; opacity:0.5;">🗑️</div></div>`;
+        list.appendChild(item);
+    });
+}
+
+function addToSetlist(id) {
+    const query = document.getElementById('searchBar').value.toLowerCase().trim();
+    const songs = JSON.parse(localStorage.getItem('chordwise_db') || '[]');
+    const song = songs.find(s => s.id === id);
+    if (song) {
+        let content = song.content, title = song.title;
+        if (query) {
+            const parts = song.content.split(/(?=Title:)/i);
+            const match = parts.find(p => p.toLowerCase().includes(query));
+            if (match) { 
+                content = match.trim(); 
+                const firstLine = content.split('\n')[0];
+                title = firstLine.replace(/title:/i, '').trim() || title; 
+            }
+        }
+        mySetlist.push({ id: Date.now(), title, content, sOffset: 0 });
+        localStorage.setItem('chordwise_setlist', JSON.stringify(mySetlist));
+        displaySetlist(); showToast("Added to Setlist! 🎸");
+    }
+}
+
+function displaySetlist() {
+    const display = document.getElementById('setListDisplay');
+    display.innerHTML = mySetlist.length ? '' : '<div style="opacity:0.4; font-size:0.7rem; text-align:center;">Empty...</div>';
+    mySetlist.forEach((s, i) => {
+        const item = document.createElement('div');
+        item.className = 'song-item';
+        item.style.border = "1px solid var(--accent)";
+        item.innerHTML = `<div onclick="startGig(${i})" style="flex:1; cursor:pointer; font-weight:700; color:var(--accent);">${s.title}</div>
+            <div onclick="removeFromSetlist(${s.id})" style="cursor:pointer; opacity:0.6;">✖</div>`;
+        display.appendChild(item);
+    });
+    if(mySetlist.length) {
+        const btn = document.createElement('button');
+        btn.innerText = "🚀 START GIG MODE"; btn.className = "btn btn-main"; btn.style.marginTop = "10px";
+        btn.onclick = () => startGig(0); display.appendChild(btn);
+    }
+}
+
+function removeFromSetlist(id) { mySetlist = mySetlist.filter(s => s.id !== id); localStorage.setItem('chordwise_setlist', JSON.stringify(mySetlist)); displaySetlist(); }
+
+// --- GIG MODE ---
+function startGig(idx) {
+    if (mySetlist.length === 0) return;
+    currentGigIdx = idx; const song = mySetlist[idx];
+    const oldInput = document.getElementById('input').value;
+    document.getElementById('input').value = song.content;
+    offset = song.sOffset || 0; process();
+    document.getElementById('gig-song-title').innerText = song.title;
+    document.getElementById('gig-output').innerText = document.getElementById('output').innerText;
+    document.getElementById('gig-offset').innerText = "KEY OFFSET: " + offset;
+    document.getElementById('gig-mode').style.display = 'flex';
+    document.getElementById('input').value = oldInput; process();
+}
+
+function navGig(dir) { 
+    let n = currentGigIdx + dir; 
+    if (n >= 0 && n < mySetlist.length) startGig(n); 
+    else showToast(dir > 0 ? "Setlist End! 🎤" : "First Song! 🎸"); 
+}
+
+function changeKeyGig(val) {
+    const song = mySetlist[currentGigIdx]; const oldVal = document.getElementById('input').value;
+    document.getElementById('input').value = song.content; changeKey(val);
+    document.getElementById('gig-output').innerText = document.getElementById('output').innerText;
+    document.getElementById('gig-offset').innerText = "KEY OFFSET: " + offset;
+    mySetlist[currentGigIdx].sOffset = offset; localStorage.setItem('chordwise_setlist', JSON.stringify(mySetlist));
+    document.getElementById('input').value = oldVal; process();
+}
+
+function resetKeyGig() {
+    offset = 0; 
+    const song = mySetlist[currentGigIdx]; 
+    const oldVal = document.getElementById('input').value;
+    document.getElementById('input').value = song.content;
+    process();
+    document.getElementById('gig-output').innerText = document.getElementById('output').innerText;
+    document.getElementById('gig-offset').innerText = "KEY OFFSET: 0";
+    document.getElementById('offsetLabel').innerText = "KEY OFFSET: 0";
+    mySetlist[currentGigIdx].sOffset = 0; 
+    localStorage.setItem('chordwise_setlist', JSON.stringify(mySetlist));
+    document.getElementById('input').value = oldVal; process();
+    showToast("Key Reset! ↺");
+}
+
+function closeGigMode() { document.getElementById('gig-mode').style.display = 'none'; }
+
+// --- PROCESSOR ---
+function extractAndLoad(id) {
+    const query = document.getElementById('searchBar').value.toLowerCase().trim();
+    const songs = JSON.parse(localStorage.getItem('chordwise_db') || '[]');
+    const s = songs.find(x => x.id === id);
+    if (s) {
+        currentSongId = s.id; // I-set ang current active id
+        let content = s.content;
+        if (query) {
+            const parts = s.content.split(/(?=Title:)/i);
+            const match = parts.find(p => p.toLowerCase().includes(query));
+            if (match) content = match.trim();
+        }
+        document.getElementById('input').value = content; offset = 0; process(); toggleSidebar();
+    }
+}
+
+function saveSong() {
+    const val = document.getElementById('input').value; 
+    if (!val.trim()) return;
+
+    let title = "Untitled", lines = val.split('\n');
+    for (let l of lines) if (l.toLowerCase().startsWith('title:')) title = l.replace(/title:/i, '').trim() || title;
+
+    let db = JSON.parse(localStorage.getItem('chordwise_db') || '[]');
+
+    if (currentSongId) {
+        // UPDATE: Hanapin ang kanta sa db gamit ang currentSongId at palitan ang content
+        const index = db.findIndex(s => s.id === currentSongId);
+        if (index !== -1) {
+            db[index].title = title;
+            db[index].content = val;
+            showToast("Updated Successfully! 💾");
+        } else {
+            // Kung wala sa DB (fallback), i-save as new
+            db.push({ id: Date.now(), title, content: val });
+            showToast("Saved to Library! 💾");
+        }
+    } else {
+        // NEW: Kung bagong kanta at walang currentSongId
+        const newId = Date.now();
+        db.push({ id: newId, title, content: val });
+        currentSongId = newId; // I-set para sa susunod na save, update na lang
+        showToast("Saved to Library! 💾");
+    }
+
+    localStorage.setItem('chordwise_db', JSON.stringify(db)); 
+    displaySongs(); 
+
+}
+
+function handleInput(el) {
+    const start = el.selectionStart; 
+    let val = el.value; 
+    const lines = val.split('\n');
+    const curIdx = val.substr(0, start).split('\n').length - 1; 
+    const curLine = lines[curIdx];
+    const lastChar = val.charAt(start - 1);
+
+    if (lastChar === ' ') {
+        const shortcuts = { 
+            // Tinanggal ang 't' shortcut dito
+            'v': 'Verse: ', 
+            'p': 'Pre-Chorus: ', 
+            'c': 'Chorus: ', 
+            'b': 'Bridge: ', 
+            'i': 'Intro: ',
+            'l': 'Lead: '       
+        };
+        
+        const trigger = curLine.trim().split(' ').pop().toLowerCase();
+        if (shortcuts[trigger] && curLine.trim().split(' ').length === 1) {
+            lines[curIdx] = shortcuts[trigger]; 
+            el.value = lines.join('\n');
+            const pos = lines.slice(0, curIdx).join('\n').length + (curIdx > 0 ? 1 : 0) + shortcuts[trigger].length;
+            el.setSelectionRange(pos, pos); 
+            process(); 
+            return;
+        }
+    }
+    // ... (itutuloy ang rest ng existing logic mo dito)
+    if (curLine.includes(':') && !curLine.toLowerCase().startsWith('title:')) {
+        if (/^[A-G]$/i.test(lastChar)) {
+            // Ang logic mo para sa auto-spacing ng chords ay mananatili
+            const prev = val.charAt(start - 2);
+            if (prev && !' :/'.includes(prev)) {
+                if (lastChar.toLowerCase() === 'b' && /^[A-G]$/i.test(prev)) {
+                    el.value = val.slice(0, start-1) + "b" + val.slice(start); el.setSelectionRange(start, start);
+                } else {
+                    el.value = val.slice(0, start-1) + " " + lastChar.toUpperCase() + val.slice(start); el.setSelectionRange(start+1, start+1);
+                }
+            } else {
+                el.value = val.slice(0, start-1) + lastChar.toUpperCase() + val.slice(start); el.setSelectionRange(start, start);
+            }
+        }
+    }
+    process();
+}
+
+function isChord(w) { 
+    return /^[A-G][b#]?([0-9]|maj|min|m|sus|dim|add|aug|maj7|m7|7)*(\/[A-G][b#]?)?$/i.test(w.trim()); 
+}
+
+function process() {
+    const inputEl = document.getElementById('input');
+    const out = document.getElementById('output');
+    const root = document.getElementById('rootKey').value;
+    const text = inputEl.value;
+
+    if(!text) { 
+        out.innerText = "Chords will appear here..."; 
+        return; 
+    }
+
+    out.innerText = text.split('\n').map(line => {
+        if (line.toLowerCase().startsWith('title:')) return line;
+        let lbl = "", con = line; 
+        if (line.includes(':')) { 
+            let i = line.indexOf(':'); 
+            lbl = line.substring(0, i+1); 
+            con = line.substring(i+1); 
+        }
+        return lbl + con.split(/(\s+)/).map(s => {
+            if (isChord(s)) {
+                if (s.includes('/')) { 
+                    let p = s.split('/'); 
+                    return isNum ? (num(p[0],root)+"/"+num(p[1],root)) : (trans(p[0])+"/"+trans(p[1])); 
+                }
+                return isNum ? num(s,root) : trans(s);
+            } 
+            return s;
+        }).join('');
+    }).join('\n');
+}
+
+function trans(c) {
+    let m = c.match(/^[A-G][b#]?/i); 
+    if (!m) return c;
+    let k = m[0].charAt(0).toUpperCase() + m[0].slice(1).toLowerCase(); 
+    if (forceSharp[k]) k = forceSharp[k];
+    let i = notes.indexOf(k); 
+    if (i === -1) return c;
+    return notes[(i + offset + 120) % 12] + c.substring(m[0].length);
+}
+
+
+function num(c, r) {
+    let m = c.match(/^[A-G][b#]?/i); if (!m) return c;
+    let k = m[0].charAt(0).toUpperCase() + m[0].slice(1).toLowerCase(); if (forceSharp[k]) k = forceSharp[k];
+    let rootKey = r; if (forceSharp[rootKey]) rootKey = forceSharp[rootKey];
+    let d = (notes.indexOf(k) - notes.indexOf(rootKey) + 12) % 12;
+    return ['1','1#','2','2#','3','4','4#','5','5#','6','6#','7'][d] + c.substring(m[0].length);
+}
+
+function changeKey(s) { let n = offset + s; if (n > 12 || n < -12) { showToast("❌Limit Reach!❌"); return; } offset = n; document.getElementById('offsetLabel').innerText = "KEY OFFSET: " + offset; process(); }
+function askClearEditor() { 
+    openModal("CLEAR ALL?", "Clear editor?", "CONFIRM", () => { 
+        document.getElementById('input').value = "Title: "; // Ibalik ang default
+        currentSongId = null; 
+        process(); 
+        showToast("Cleared! 🗑️"); 
+    }); 
+}
+
+function resetAll() { 
+    offset = 0; 
+    isNum = false; 
+    currentSongId = null; 
+    document.getElementById('input').value = "Title: "; // Ibalik ang default
+    document.getElementById('offsetLabel').innerText = "KEY OFFSET: 0"; 
+    document.getElementById('numBtn').innerText = "ACTIVATE NUMBER SYSTEM"; 
+    document.getElementById('keySection').style.display = "none"; 
+    process(); 
+}
+function toggleNum() { isNum = !isNum; document.getElementById('keySection').style.display = isNum ? "block" : "none"; document.getElementById('numBtn').innerText = isNum ? "NUM SYSTEM ACTIVE" : "ACTIVATE NUMBER SYSTEM"; process(); }
+function copy() { navigator.clipboard.writeText(document.getElementById('output').innerText).then(() => showToast("Copied! 📋")); }
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); const ov = document.getElementById('sidebarOverlay'); ov.style.display = ov.style.display === 'block' ? 'none' : 'block'; }
+function toggleTheme() { document.body.classList.toggle('light-mode'); document.getElementById('themeIcon').innerText = document.body.classList.contains('light-mode') ? "☀️" : "🌙"; }
+function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
+function askDeleteSong(id) { openModal("DELETE?", "Remove from library?", "DELETE", () => { let db = JSON.parse(localStorage.getItem('chordwise_db') || '[]'); localStorage.setItem('chordwise_db', JSON.stringify(db.filter(x => x.id !== id))); removeFromSetlist(id); displaySongs(); }); }
+async function shareSong() {
+    const inputVal = document.getElementById('input').value;
+    const title = inputVal.split('\n')[0].replace(/title:/i, '').trim() || "My Song";
+    const text = document.getElementById('output').innerText;
+
+    // Check kung running bilang Native App (Capacitor)
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        try {
+            // Tatawagin ang @capacitor/share plugin
+            await Capacitor.Plugins.Share.share({
+                title: 'ChordWise - ' + title,
+                text: text,
+                dialogTitle: 'Share via Bluetooth / Nearby Share'
+            });
+        } catch (err) {
+            console.log("Native share cancelled or failed");
+        }
+    } else if (navigator.share) {
+        // Fallback para sa Web Browser
+        try {
+            await navigator.share({ title: 'ChordWise - ' + title, text: text });
+        } catch (err) {
+            showToast("Share cancelled");
+        }
+    } else {
+        copy();
+        showToast("Copied to clipboard! 📋");
+    }
+}
+</script>
+</body>
+</html>

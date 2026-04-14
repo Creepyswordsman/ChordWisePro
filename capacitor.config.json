@@ -1,0 +1,11 @@
+{
+  "appId": "chord.wise.pro",
+  "appName": "ChordWisePro",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "Filesystem": {
+      "androidStorage": "all"
+    }
+  }
+}
